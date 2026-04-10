@@ -1,4 +1,4 @@
-import { useUser } from "@clerk/clerk-react";
+import { useUser } from "./lib/mockAuth";
 import { Navigate, Route, Routes } from "react-router";
 import HomePage from "./pages/HomePage";
 

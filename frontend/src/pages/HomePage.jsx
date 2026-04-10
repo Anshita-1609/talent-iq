@@ -9,8 +9,36 @@ import {
   ZapIcon,
 } from "lucide-react";
 import { SignInButton } from "@clerk/clerk-react";
+import { useAuth } from "../lib/mockAuth";
 
 function HomePage() {
+  const { isSignedIn } = useAuth();
+
+  // Check if Clerk is available
+  const isClerkEnabled = () => {
+    try {
+      require("@clerk/clerk-react");
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  const handleGetStarted = () => {
+    if (isClerkEnabled()) {
+      // Clerk is available, SignInButton will handle it
+      return;
+    } else {
+      // Mock auth - simulate login
+      localStorage.setItem('mockUser', JSON.stringify({
+        id: 'user_001',
+        name: 'Demo User',
+        email: 'demo@example.com'
+      }));
+      window.location.href = '/dashboard';
+    }
+  };
+
   return (
     <div className="bg-gradient-to-br from-base-100 via-base-200 to-base-300">
       {/* NAVBAR */}
@@ -34,12 +62,22 @@ function HomePage() {
           </Link>
 
           {/* AUTH BTN */}
-          <SignInButton mode="modal">
-            <button className="group px-6 py-3 bg-gradient-to-r from-primary to-secondary rounded-xl text-white font-semibold text-sm shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 flex items-center gap-2">
-              <span>Get Started</span>
+          {isClerkEnabled() ? (
+            <SignInButton mode="modal">
+              <button className="group px-6 py-3 bg-gradient-to-r from-primary to-secondary rounded-xl text-white font-semibold text-sm shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 flex items-center gap-2">
+                <span>Get Started</span>
+                <ArrowRightIcon className="size-4 group-hover:translate-x-0.5 transition-transform" />
+              </button>
+            </SignInButton>
+          ) : (
+            <button
+              onClick={handleGetStarted}
+              className="group px-6 py-3 bg-gradient-to-r from-primary to-secondary rounded-xl text-white font-semibold text-sm shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 flex items-center gap-2"
+            >
+              <span>Try Demo</span>
               <ArrowRightIcon className="size-4 group-hover:translate-x-0.5 transition-transform" />
             </button>
-          </SignInButton>
+          )}
         </div>
       </nav>
 
