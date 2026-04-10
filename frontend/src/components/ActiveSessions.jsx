@@ -39,7 +39,7 @@ function ActiveSessions({ sessions, isLoading, isUserInSession }) {
           ) : sessions.length > 0 ? (
             sessions.map((session) => (
               <div
-                key={session._id}
+                key={session.id || session._id}
                 className="card bg-base-200 border-2 border-base-300 hover:border-primary/50"
               >
                 <div className="flex items-center justify-between gap-4 p-5">
@@ -84,7 +84,10 @@ function ActiveSessions({ sessions, isLoading, isUserInSession }) {
                   {session.participant && !isUserInSession(session) ? (
                     <button className="btn btn-disabled btn-sm">Full</button>
                   ) : (
-                    <Link to={`/session/${session._id}`} className="btn btn-primary btn-sm gap-2">
+                    <Link
+                      to={`/session/${session.id || session._id}`}
+                      className="btn btn-primary btn-sm gap-2"
+                    >
                       {isUserInSession(session) ? "Rejoin" : "Join"}
                       <ArrowRightIcon className="size-4" />
                     </Link>

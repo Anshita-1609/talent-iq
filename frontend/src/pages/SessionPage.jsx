@@ -14,6 +14,7 @@ import OutputPanel from "../components/OutputPanel";
 import useStreamClient from "../hooks/useStreamClient";
 import { StreamCall, StreamVideo } from "@stream-io/video-react-sdk";
 import VideoCallUI from "../components/VideoCallUI";
+import DummyVideoCallUI from "../components/DummyVideoCallUI";
 
 function SessionPage() {
   const navigate = useNavigate();
@@ -31,7 +32,7 @@ function SessionPage() {
   const isHost = session?.host?.clerkId === user?.id;
   const isParticipant = session?.participant?.clerkId === user?.id;
 
-  const { call, channel, chatClient, isInitializingCall, streamClient } = useStreamClient(
+  const { call, channel, chatClient, isInitializingCall, isDummyCall, streamClient } = useStreamClient(
     session,
     loadingSession,
     isHost,
@@ -264,6 +265,8 @@ function SessionPage() {
                     <p className="text-lg">Connecting to video call...</p>
                   </div>
                 </div>
+              ) : isDummyCall ? (
+                <DummyVideoCallUI session={session} isHost={isHost} isParticipant={isParticipant} />
               ) : !streamClient || !call ? (
                 <div className="h-full flex items-center justify-center">
                   <div className="card bg-base-100 shadow-xl max-w-md">

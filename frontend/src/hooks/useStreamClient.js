@@ -10,15 +10,37 @@ function useStreamClient(session, loadingSession, isHost, isParticipant) {
   const [chatClient, setChatClient] = useState(null);
   const [channel, setChannel] = useState(null);
   const [isInitializingCall, setIsInitializingCall] = useState(true);
+  const [isDummyCall, setIsDummyCall] = useState(false);
 
   useEffect(() => {
     let videoCall = null;
     let chatClientInstance = null;
 
+    const hasStreamKeys =
+      import.meta.env.VITE_STREAM_API_KEY &&
+      import.meta.env.VITE_STREAM_API_KEY !== "your_stream_api_key";
+
     const initCall = async () => {
-      if (!session?.callId) return;
-      if (!isHost && !isParticipant) return;
-      if (session.status === "completed") return;
+      if (!session?.callId) {
+        setIsInitializingCall(false);
+        return;
+      }
+
+      if (!isHost && !isParticipant) {
+        setIsInitializingCall(false);
+        return;
+      }
+
+      if (session.status === "completed") {
+        setIsInitializingCall(false);
+        return;
+      }
+
+      if (!hasStreamKeys) {
+        setIsDummyCall(true);
+        setIsInitializingCall(false);
+        return;
+      }
 
       try {
         const { token, userId, userName, userImage } = await sessionApi.getStreamToken();
@@ -55,8 +77,9 @@ function useStreamClient(session, loadingSession, isHost, isParticipant) {
         await chatChannel.watch();
         setChannel(chatChannel);
       } catch (error) {
-        toast.error("Failed to join video call");
+        toast.error("Failed to join video call, using dummy setup instead.");
         console.error("Error init call", error);
+        setIsDummyCall(true);
       } finally {
         setIsInitializingCall(false);
       }
@@ -66,7 +89,6 @@ function useStreamClient(session, loadingSession, isHost, isParticipant) {
 
     // cleanup - performance reasons
     return () => {
-      // iife
       (async () => {
         try {
           if (videoCall) await videoCall.leave();
@@ -85,6 +107,7 @@ function useStreamClient(session, loadingSession, isHost, isParticipant) {
     chatClient,
     channel,
     isInitializingCall,
+    isDummyCall,
   };
 }
 

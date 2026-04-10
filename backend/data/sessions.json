@@ -1,0 +1,134 @@
+[
+  {
+    "problem": "Two Sum",
+    "difficulty": "easy",
+    "host": "user_001",
+    "participant": "user_002",
+    "status": "completed",
+    "callId": "session_1640995200000_abc123",
+    "createdAt": "2026-04-01T14:00:00.000Z",
+    "updatedAt": "2026-04-01T15:30:00.000Z",
+    "id": "session_001"
+  },
+  {
+    "problem": "Valid Parentheses",
+    "difficulty": "easy",
+    "host": "user_002",
+    "participant": "user_001",
+    "status": "active",
+    "callId": "session_1641081600000_def456",
+    "createdAt": "2026-04-02T16:00:00.000Z",
+    "updatedAt": "2026-04-10T09:08:20.727Z",
+    "id": "session_002"
+  },
+  {
+    "problem": "Merge Two Sorted Lists",
+    "difficulty": "easy",
+    "host": "user_003",
+    "participant": "user_001",
+    "status": "active",
+    "callId": "session_1641168000000_ghi789",
+    "createdAt": "2026-04-03T17:00:00.000Z",
+    "updatedAt": "2026-04-10T09:08:49.888Z",
+    "id": "session_003"
+  },
+  {
+    "problem": "Maximum Subarray",
+    "difficulty": "medium",
+    "host": "user_001",
+    "participant": "user_003",
+    "status": "completed",
+    "callId": "session_1641254400000_jkl012",
+    "createdAt": "2026-04-04T18:00:00.000Z",
+    "updatedAt": "2026-04-04T19:45:00.000Z",
+    "id": "session_004"
+  },
+  {
+    "problem": "Reverse String",
+    "difficulty": "easy",
+    "host": "user_001",
+    "participant": null,
+    "status": "active",
+    "callId": "session_1775568631862_s4vfje",
+    "createdAt": "2026-04-07T13:30:31.863Z",
+    "updatedAt": "2026-04-07T13:30:31.863Z",
+    "id": "1775568631863zs8d7bi6f"
+  },
+  {
+    "problem": "Reverse String",
+    "difficulty": "easy",
+    "host": "user_001",
+    "participant": null,
+    "status": "active",
+    "callId": "session_1775811681982_r4ht18",
+    "createdAt": "2026-04-10T09:01:21.982Z",
+    "updatedAt": "2026-04-10T09:01:21.982Z",
+    "id": "1775811681982w5q76yeqz"
+  },
+  {
+    "problem": "Reverse String",
+    "difficulty": "easy",
+    "host": "user_001",
+    "participant": null,
+    "status": "active",
+    "callId": "session_1775811684095_s0mqp2",
+    "createdAt": "2026-04-10T09:01:24.095Z",
+    "updatedAt": "2026-04-10T09:01:24.095Z",
+    "id": "1775811684095d842yqueo"
+  },
+  {
+    "problem": "Reverse String",
+    "difficulty": "easy",
+    "host": "user_001",
+    "participant": null,
+    "status": "active",
+    "callId": "session_1775811697747_9itxxr",
+    "createdAt": "2026-04-10T09:01:37.747Z",
+    "updatedAt": "2026-04-10T09:01:37.747Z",
+    "id": "177581169774787vefo6zg"
+  },
+  {
+    "problem": "Reverse String",
+    "difficulty": "easy",
+    "host": "user_001",
+    "participant": null,
+    "status": "active",
+    "callId": "session_1775811746798_4fszbg",
+    "createdAt": "2026-04-10T09:02:26.799Z",
+    "updatedAt": "2026-04-10T09:02:26.799Z",
+    "id": "177581174679901plp2buk"
+  },
+  {
+    "problem": "Reverse String",
+    "difficulty": "easy",
+    "host": "user_001",
+    "participant": null,
+    "status": "active",
+    "callId": "session_1775811748682_xxmeu",
+    "createdAt": "2026-04-10T09:02:28.683Z",
+    "updatedAt": "2026-04-10T09:02:28.683Z",
+    "id": "1775811748683npjfbds1h"
+  },
+  {
+    "problem": "Reverse String",
+    "difficulty": "easy",
+    "host": "user_001",
+    "participant": null,
+    "status": "active",
+    "callId": "session_1775811785341_7h8su",
+    "createdAt": "2026-04-10T09:03:05.341Z",
+    "updatedAt": "2026-04-10T09:03:05.341Z",
+    "id": "1775811785341r8l8pztn5"
+  },
+  {
+    "problem": "Reverse String",
+    "difficulty": "easy",
+    "host": "user_001",
+    "participant": null,
+    "status": "active",
+    "callId": "session_1775811787072_y89vks",
+    "createdAt": "2026-04-10T09:03:07.073Z",
+    "updatedAt": "2026-04-10T09:03:07.073Z",
+    "id": "1775811787073ytyhl967x"
+  }
+]

@@ -19,7 +19,23 @@ const __dirname = path.resolve();
 app.use(express.json());
 // credentials:true meaning?? => server allows a browser to include cookies on request
 app.use(cors({ origin: ENV.CLIENT_URL, credentials: true }));
-app.use(clerkMiddleware()); // this adds auth field to request object: req.auth()
+
+const isClerkEnabled =
+  ENV.CLERK_PUBLISHABLE_KEY &&
+  ENV.CLERK_SECRET_KEY &&
+  !ENV.CLERK_PUBLISHABLE_KEY.includes("your_clerk_publishable_key") &&
+  !ENV.CLERK_SECRET_KEY.includes("your_clerk_secret_key");
+
+if (isClerkEnabled) {
+  app.use(clerkMiddleware()); // this adds auth field to request object: req.auth()
+} else {
+  console.warn(
+    "⚠️ Clerk auth is disabled because CLERK_PUBLISHABLE_KEY or CLERK_SECRET_KEY is not configured."
+  );
+  console.warn(
+    "Set valid Clerk keys in backend/.env or enable mock auth using existing users."
+  );
+}
 
 app.use("/api/inngest", serve({ client: inngest, functions }));
 app.use("/api/chat", chatRoutes);

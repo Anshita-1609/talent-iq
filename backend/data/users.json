@@ -1,0 +1,29 @@
+[
+  {
+    "name": "Alice Johnson",
+    "email": "alice@example.com",
+    "profileImage": "https://api.dicebear.com/7.x/avataaars/svg?seed=Alice",
+    "clerkId": "user_2abc123def456",
+    "createdAt": "2026-04-01T10:00:00.000Z",
+    "updatedAt": "2026-04-01T10:00:00.000Z",
+    "id": "user_001"
+  },
+  {
+    "name": "Bob Smith",
+    "email": "bob@example.com",
+    "profileImage": "https://api.dicebear.com/7.x/avataaars/svg?seed=Bob",
+    "clerkId": "user_2def456ghi789",
+    "createdAt": "2026-04-02T11:00:00.000Z",
+    "updatedAt": "2026-04-02T11:00:00.000Z",
+    "id": "user_002"
+  },
+  {
+    "name": "Charlie Brown",
+    "email": "charlie@example.com",
+    "profileImage": "https://api.dicebear.com/7.x/avataaars/svg?seed=Charlie",
+    "clerkId": "user_2ghi789jkl012",
+    "createdAt": "2026-04-03T12:00:00.000Z",
+    "updatedAt": "2026-04-03T12:00:00.000Z",
+    "id": "user_003"
+  }
+]
