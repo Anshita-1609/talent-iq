@@ -4,7 +4,22 @@
 
 Conduct live 1-on-1 coding interviews with video, chat, and a shared editor—or practice DSA problems solo. Run code against test cases, get instant pass/fail feedback, and receive AI-powered analysis on correctness, complexity, and improvements.
 
-![Demo App](./frontend/public/screenshot-for-readme.png)
+## Screenshots
+
+### Dashboard
+Live sessions, active session count, and quick access to create or rejoin interviews.
+
+![Dashboard](./frontend/public/screenshot-dashboard.png)
+
+### Practice Problems
+Curated DSA problems with difficulty tags and solo practice mode.
+
+![Practice Problems](./frontend/public/screenshot-problems.png)
+
+### Live Interview Session
+Shared code editor, video call, real-time chat, and AI analysis in one room.
+
+![Live Session](./frontend/public/screenshot-session.png)
 
 ---
 
