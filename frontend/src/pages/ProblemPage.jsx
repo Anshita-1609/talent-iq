@@ -8,6 +8,7 @@ import ProblemDescription from "../components/ProblemDescription";
 import OutputPanel from "../components/OutputPanel";
 import CodeEditorPanel from "../components/CodeEditorPanel";
 import { executeCode } from "../lib/piston";
+import axiosInstance from "../lib/axios";
 
 import toast from "react-hot-toast";
 import confetti from "canvas-confetti";
@@ -21,6 +22,8 @@ function ProblemPage() {
   const [code, setCode] = useState(PROBLEMS[currentProblemId].starterCode.javascript);
   const [output, setOutput] = useState(null);
   const [isRunning, setIsRunning] = useState(false);
+  const [analysis, setAnalysis] = useState(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   const currentProblem = PROBLEMS[currentProblemId];
 
@@ -30,6 +33,7 @@ function ProblemPage() {
       setCurrentProblemId(id);
       setCode(PROBLEMS[id].starterCode[selectedLanguage]);
       setOutput(null);
+      setAnalysis(null);
     }
   }, [id, selectedLanguage]);
 
@@ -38,6 +42,7 @@ function ProblemPage() {
     setSelectedLanguage(newLang);
     setCode(currentProblem.starterCode[newLang]);
     setOutput(null);
+    setAnalysis(null);
   };
 
   const handleProblemChange = (newProblemId) => navigate(`/problem/${newProblemId}`);
@@ -84,13 +89,14 @@ function ProblemPage() {
   const handleRunCode = async () => {
     setIsRunning(true);
     setOutput(null);
+    setAnalysis(null);
+    setIsAnalyzing(false);
 
     const result = await executeCode(selectedLanguage, code);
     setOutput(result);
     setIsRunning(false);
 
     // check if code executed successfully and matches expected output
-
     if (result.success) {
       const expectedOutput = currentProblem.expectedOutput[selectedLanguage];
       const testsPassed = checkIfTestsPassed(result.output, expectedOutput);
@@ -103,6 +109,31 @@ function ProblemPage() {
       }
     } else {
       toast.error("Code execution failed!");
+    }
+
+    // Start AI analysis in the background
+    setIsAnalyzing(true);
+    try {
+      const analysisResponse = await axiosInstance.post("/code/analyze", {
+        code,
+        language: selectedLanguage,
+        problemId: currentProblemId,
+        problemDescription: currentProblem.description.text,
+        codeOutput: result.output || result.error || "",
+      });
+
+      if (analysisResponse.data.success) {
+        setAnalysis(analysisResponse.data);
+        toast.success("AI analysis ready!");
+      } else {
+        console.error("Analysis error:", analysisResponse.data.error);
+        toast.error("Failed to analyze code");
+      }
+    } catch (error) {
+      console.error("Error calling analysis API:", error);
+      toast.error("Failed to get AI analysis");
+    } finally {
+      setIsAnalyzing(false);
     }
   };
 
@@ -144,7 +175,7 @@ function ProblemPage() {
               {/* Bottom panel - Output Panel*/}
 
               <Panel defaultSize={30} minSize={30}>
-                <OutputPanel output={output} />
+                <OutputPanel output={output} analysis={analysis} isAnalyzing={isAnalyzing} />
               </Panel>
             </PanelGroup>
           </Panel>

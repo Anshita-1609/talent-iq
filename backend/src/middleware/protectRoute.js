@@ -14,12 +14,14 @@ export const protectRoute = [
     try {
       const clerkId = isClerkEnabled
         ? req.auth().userId
-        : process.env.MOCK_USER_CLERK_ID || "user_2abc123def456"; // Use the actual clerkId from users.json
+        : req.headers["x-mock-user-clerk-id"] ||
+          process.env.MOCK_USER_CLERK_ID ||
+          "user_2abc123def456";
 
       if (!clerkId) return res.status(401).json({ message: "Unauthorized - invalid token" });
 
-      // find user in db by clerk ID
-      const user = User.findOne({ clerkId });
+      let user = User.findOne({ clerkId });
+      if (!user) user = User.findOne({ id: clerkId });
 
       if (!user) return res.status(404).json({ message: "User not found" });
 

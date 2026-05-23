@@ -103,37 +103,58 @@ export async function joinSession(req, res) {
     const userId = req.user.id;
     const clerkId = req.user.clerkId;
 
+    console.log(`[JOIN] User ${userId} joining session ${id}`);
+
     const session = Session.findById(id);
-    if (!session) return res.status(404).json({ message: "Session not found" });
+    if (!session) {
+      console.log(`[JOIN] Session not found: ${id}`);
+      return res.status(404).json({ message: "Session not found" });
+    }
+
+    console.log(`[JOIN] Session status: ${session.status}`);
 
     if (session.status !== "active") {
       return res.status(400).json({ message: "Cannot join a completed session" });
     }
 
+    // If user is the host, they're already joined
     if (session.host === userId) {
-      return res.status(400).json({ message: "Host cannot join their own session as participant" });
+      console.log(`[JOIN] User is host`);
+      return res.status(200).json({ session, message: "Already in session as host" });
     }
 
-    // check if session is already full - has a participant
-    if (session.participant) return res.status(409).json({ message: "Session is full" });
+    // check if session is already full
+    if (session.participant) {
+      console.log(`[JOIN] Session full`);
+      return res.status(409).json({ message: "Session is full" });
+    }
 
     // update session with participant
-    Session.findByIdAndUpdate(id, { participant: userId });
+    const updatedSession = Session.findByIdAndUpdate(id, { participant: userId });
+    console.log(`[JOIN] Session updated`);
 
-    // add participant to stream call
-    const call = streamClient.video.call("default", session.callId);
-    await call.updateCallMembers({
-      update_members: [{ user_id: clerkId, role: "participant" }],
-    });
+    // add participant to stream call (non-critical)
+    try {
+      const call = streamClient.video.call("default", session.callId);
+      await call.updateCallMembers({
+        update_members: [{ user_id: clerkId, role: "participant" }],
+      });
+    } catch (err) {
+      console.warn("[JOIN] Stream error (non-critical):", err.message);
+    }
 
-    // add participant to chat channel
-    const channel = chatClient.channel("messaging", session.callId);
-    await channel.addMembers([clerkId]);
+    // add participant to chat channel (non-critical)
+    try {
+      const channel = chatClient.channel("messaging", session.callId);
+      await channel.addMembers([clerkId]);
+    } catch (err) {
+      console.warn("[JOIN] Chat error (non-critical):", err.message);
+    }
 
-    res.status(200).json({ session: { ...session, participant: userId } });
+    res.status(200).json({ session: updatedSession });
   } catch (error) {
-    console.log("Error in joinSession controller:", error.message);
-    res.status(500).json({ message: "Internal Server Error" });
+    console.error("Error in joinSession:", error);
+    res.status(500).json({ message: "Internal Server Error: " + error.message });
   }
 }
 

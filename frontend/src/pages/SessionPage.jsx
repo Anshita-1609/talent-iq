@@ -1,9 +1,11 @@
-import { useUser } from "@clerk/clerk-react";
+import { useUser } from "../lib/mockAuth.jsx";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { useEndSession, useJoinSession, useSessionById } from "../hooks/useSessions";
-import { PROBLEMS } from "../data/problems";
+import { findProblemByTitle, DEFAULT_STARTER_CODE } from "../lib/problemUtils";
 import { executeCode } from "../lib/piston";
+import axiosInstance from "../lib/axios";
+import toast from "react-hot-toast";
 import Navbar from "../components/Navbar";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { getDifficultyBadgeClass } from "../lib/utils";
@@ -15,6 +17,8 @@ import useStreamClient from "../hooks/useStreamClient";
 import { StreamCall, StreamVideo } from "@stream-io/video-react-sdk";
 import VideoCallUI from "../components/VideoCallUI";
 import DummyVideoCallUI from "../components/DummyVideoCallUI";
+import SessionInviteLink from "../components/SessionInviteLink";
+import { formatDifficulty, isSameAppUser } from "../lib/mockUser";
 
 function SessionPage() {
   const navigate = useNavigate();
@@ -22,15 +26,22 @@ function SessionPage() {
   const { user } = useUser();
   const [output, setOutput] = useState(null);
   const [isRunning, setIsRunning] = useState(false);
+  const [analysis, setAnalysis] = useState(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
 
-  const { data: sessionData, isLoading: loadingSession, refetch } = useSessionById(id);
+  const {
+    data: sessionData,
+    isLoading: loadingSession,
+    isError: sessionError,
+    refetch,
+  } = useSessionById(id);
 
   const joinSessionMutation = useJoinSession();
   const endSessionMutation = useEndSession();
 
   const session = sessionData?.session;
-  const isHost = session?.host?.clerkId === user?.id;
-  const isParticipant = session?.participant?.clerkId === user?.id;
+  const isHost = isSameAppUser(session?.host, user);
+  const isParticipant = isSameAppUser(session?.participant, user);
 
   const { call, channel, chatClient, isInitializingCall, isDummyCall, streamClient } = useStreamClient(
     session,
@@ -39,23 +50,19 @@ function SessionPage() {
     isParticipant
   );
 
-  // find the problem data based on session problem title
-  const problemData = session?.problem
-    ? Object.values(PROBLEMS).find((p) => p.title === session.problem)
-    : null;
+  const problemData = session?.problem ? findProblemByTitle(session.problem) : null;
 
   const [selectedLanguage, setSelectedLanguage] = useState("javascript");
   const [code, setCode] = useState(problemData?.starterCode?.[selectedLanguage] || "");
 
   // auto-join session if user is not already a participant and not the host
   useEffect(() => {
-    if (!session || !user || loadingSession) return;
+    if (!session || !user || loadingSession || sessionError) return;
     if (isHost || isParticipant) return;
+    if (joinSessionMutation.isPending) return;
 
     joinSessionMutation.mutate(id, { onSuccess: refetch });
-
-    // remove the joinSessionMutation, refetch from dependencies to avoid infinite loop
-  }, [session, user, loadingSession, isHost, isParticipant, id]);
+  }, [session, user, loadingSession, sessionError, isHost, isParticipant, id]);
 
   // redirect the "participant" when session ends
   useEffect(() => {
@@ -64,12 +71,17 @@ function SessionPage() {
     if (session.status === "completed") navigate("/dashboard");
   }, [session, loadingSession, navigate]);
 
-  // update code when problem loads or changes
   useEffect(() => {
-    if (problemData?.starterCode?.[selectedLanguage]) {
-      setCode(problemData.starterCode[selectedLanguage]);
+    if (loadingSession) return;
+    const starter = problemData?.starterCode?.[selectedLanguage];
+    if (starter) {
+      setCode(starter);
+      return;
     }
-  }, [problemData, selectedLanguage]);
+    if (session?.problem && !problemData) {
+      setCode(DEFAULT_STARTER_CODE[selectedLanguage] || "");
+    }
+  }, [problemData, selectedLanguage, session?.problem, loadingSession]);
 
   const handleLanguageChange = (e) => {
     const newLang = e.target.value;
@@ -78,15 +90,44 @@ function SessionPage() {
     const starterCode = problemData?.starterCode?.[newLang] || "";
     setCode(starterCode);
     setOutput(null);
+    setAnalysis(null);
   };
 
   const handleRunCode = async () => {
     setIsRunning(true);
     setOutput(null);
+    setAnalysis(null);
+    setIsAnalyzing(false);
 
     const result = await executeCode(selectedLanguage, code);
     setOutput(result);
     setIsRunning(false);
+
+    if (!problemData) return;
+
+    setIsAnalyzing(true);
+    try {
+      const analysisResponse = await axiosInstance.post("/code/analyze", {
+        code,
+        language: selectedLanguage,
+        problemId: problemData.id,
+        problemDescription: problemData.description?.text || session?.problem,
+        codeOutput: result.output || result.error || "",
+      });
+
+      if (analysisResponse.data.success) {
+        setAnalysis(analysisResponse.data);
+        toast.success("AI analysis ready!");
+      } else {
+        console.error("Analysis error:", analysisResponse.data.error);
+        toast.error(analysisResponse.data.error || "Failed to analyze code");
+      }
+    } catch (error) {
+      console.error("Error calling analysis API:", error);
+      toast.error("Failed to get AI analysis");
+    } finally {
+      setIsAnalyzing(false);
+    }
   };
 
   const handleEndSession = () => {
@@ -95,6 +136,28 @@ function SessionPage() {
       endSessionMutation.mutate(id, { onSuccess: () => navigate("/dashboard") });
     }
   };
+
+  if (sessionError) {
+    return (
+      <div className="h-screen bg-base-100 flex flex-col">
+        <Navbar />
+        <div className="flex-1 flex items-center justify-center p-6">
+          <div className="card bg-base-200 max-w-md w-full shadow-lg">
+            <div className="card-body text-center">
+              <h2 className="card-title justify-center">Could not load session</h2>
+              <p className="text-sm opacity-70">
+                Sign out, sign in again as Alice/Bob/Charlie, then retry. Old demo logins
+                sometimes break API auth.
+              </p>
+              <button type="button" className="btn btn-primary mt-2" onClick={() => navigate("/dashboard")}>
+                Back to dashboard
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="h-screen bg-base-100 flex flex-col">
@@ -122,6 +185,14 @@ function SessionPage() {
                           Host: {session?.host?.name || "Loading..."} •{" "}
                           {session?.participant ? 2 : 1}/2 participants
                         </p>
+                        {isHost && session?.status === "active" && !session?.participant && (
+                          <SessionInviteLink sessionId={id} waitingForGuest />
+                        )}
+                        {isHost && session?.status === "active" && session?.participant && (
+                          <p className="text-sm text-success mt-2">
+                            Partner joined — room is full.
+                          </p>
+                        )}
                       </div>
 
                       <div className="flex items-center gap-3">
@@ -130,8 +201,7 @@ function SessionPage() {
                             session?.difficulty
                           )}`}
                         >
-                          {session?.difficulty.slice(0, 1).toUpperCase() +
-                            session?.difficulty.slice(1) || "Easy"}
+                          {formatDifficulty(session?.difficulty)}
                         </span>
                         {isHost && session?.status === "active" && (
                           <button
@@ -155,7 +225,16 @@ function SessionPage() {
                   </div>
 
                   <div className="p-6 space-y-6">
-                    {/* problem desc */}
+                    {session?.problem && !problemData && !loadingSession && (
+                      <div className="alert alert-warning">
+                        <span>
+                          Problem details for &quot;{session.problem}&quot; are not in the library.
+                          Create a new session from the dashboard and pick a listed problem (Two Sum,
+                          Reverse String, etc.) for full description and starter code.
+                        </span>
+                      </div>
+                    )}
+
                     {problemData?.description && (
                       <div className="bg-base-100 rounded-xl shadow-sm p-5 border border-base-300">
                         <h2 className="text-xl font-bold mb-4 text-base-content">Description</h2>
@@ -246,7 +325,7 @@ function SessionPage() {
                   <PanelResizeHandle className="h-2 bg-base-300 hover:bg-primary transition-colors cursor-row-resize" />
 
                   <Panel defaultSize={30} minSize={15}>
-                    <OutputPanel output={output} />
+                    <OutputPanel output={output} analysis={analysis} isAnalyzing={isAnalyzing} />
                   </Panel>
                 </PanelGroup>
               </Panel>

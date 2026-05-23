@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router";
-import { useUser } from "@clerk/clerk-react";
+import { useUser } from "../lib/mockAuth.jsx";
 import { useState } from "react";
 import { useActiveSessions, useCreateSession, useMyRecentSessions } from "../hooks/useSessions";
 
@@ -9,13 +9,13 @@ import StatsCards from "../components/StatsCards";
 import ActiveSessions from "../components/ActiveSessions";
 import RecentSessions from "../components/RecentSessions";
 import CreateSessionModal from "../components/CreateSessionModal";
+import { isSameAppUser } from "../lib/mockUser";
 
 function DashboardPage() {
   const navigate = useNavigate();
   const { user } = useUser();
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [roomConfig, setRoomConfig] = useState({ problem: "", difficulty: "" });
-
   const createSessionMutation = useCreateSession();
 
   const { data: activeSessionsData, isLoading: loadingActiveSessions } = useActiveSessions();
@@ -32,6 +32,7 @@ function DashboardPage() {
       {
         onSuccess: (data) => {
           setShowCreateModal(false);
+          setRoomConfig({ problem: "", difficulty: "" });
           const sessionId = data.session.id || data.session._id;
           navigate(`/session/${sessionId}`);
         },
@@ -45,7 +46,7 @@ function DashboardPage() {
   const isUserInSession = (session) => {
     if (!user.id) return false;
 
-    return session.host?.clerkId === user.id || session.participant?.clerkId === user.id;
+    return isSameAppUser(session.host, user) || isSameAppUser(session.participant, user);
   };
 
   return (
@@ -74,7 +75,10 @@ function DashboardPage() {
 
       <CreateSessionModal
         isOpen={showCreateModal}
-        onClose={() => setShowCreateModal(false)}
+        onClose={() => {
+          setShowCreateModal(false);
+          setRoomConfig({ problem: "", difficulty: "" });
+        }}
         roomConfig={roomConfig}
         setRoomConfig={setRoomConfig}
         onCreateRoom={handleCreateRoom}

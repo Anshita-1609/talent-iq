@@ -42,8 +42,19 @@ function useStreamClient(session, loadingSession, isHost, isParticipant) {
         return;
       }
 
+      const timeoutMs = 12000;
+      const withTimeout = (promise) =>
+        Promise.race([
+          promise,
+          new Promise((_, reject) =>
+            setTimeout(() => reject(new Error("Video connection timed out")), timeoutMs)
+          ),
+        ]);
+
       try {
-        const { token, userId, userName, userImage } = await sessionApi.getStreamToken();
+        const { token, userId, userName, userImage } = await withTimeout(
+          sessionApi.getStreamToken()
+        );
 
         const client = await initializeStreamClient(
           {

@@ -1,13 +1,19 @@
 import { Link, useLocation } from "react-router";
-import { BookOpenIcon, LayoutDashboardIcon, SparklesIcon } from "lucide-react";
-import { UserButton } from "@clerk/clerk-react";
+import { BookOpenIcon, LayoutDashboardIcon, SparklesIcon, LogOutIcon } from "lucide-react";
+import { useUser } from "../lib/mockAuth.jsx";
 
 function Navbar() {
   const location = useLocation();
+  const { user, signOut } = useUser();
 
   console.log(location);
 
   const isActive = (path) => location.pathname === path;
+
+  const handleLogout = () => {
+    signOut();
+    window.location.href = '/';
+  };
 
   return (
     <nav className="bg-base-100/80 backdrop-blur-md border-b border-primary/20 sticky top-0 z-50 shadow-lg">
@@ -66,8 +72,15 @@ function Navbar() {
             </div>
           </Link>
 
-          <div className="ml-4 mt-2">
-            <UserButton />
+          <div className="ml-4 mt-2 flex items-center gap-2">
+            <span className="text-sm font-medium">{user?.name || 'Demo User'}</span>
+            <button
+              onClick={handleLogout}
+              className="btn btn-ghost btn-sm"
+              title="Logout"
+            >
+              <LogOutIcon className="size-4" />
+            </button>
           </div>
         </div>
       </div>

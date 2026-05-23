@@ -19,7 +19,6 @@ function CreateSessionModal({
         <h3 className="font-bold text-2xl mb-6">Create New Session</h3>
 
         <div className="space-y-8">
-          {/* PROBLEM SELECTION */}
           <div className="space-y-2">
             <label className="label">
               <span className="label-text font-semibold">Select Problem</span>
@@ -49,7 +48,6 @@ function CreateSessionModal({
             </select>
           </div>
 
-          {/* ROOM SUMMARY */}
           {roomConfig.problem && (
             <div className="alert alert-success">
               <Code2Icon className="size-5" />
@@ -81,7 +79,6 @@ function CreateSessionModal({
             ) : (
               <PlusIcon className="size-5" />
             )}
-
             {isCreating ? "Creating..." : "Create"}
           </button>
         </div>

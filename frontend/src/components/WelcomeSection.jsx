@@ -1,4 +1,4 @@
-import { useUser } from "@clerk/clerk-react";
+import { useUser } from "../lib/mockAuth.jsx";
 import { ArrowRightIcon, SparklesIcon, ZapIcon } from "lucide-react";
 
 function WelcomeSection({ onCreateSession }) {

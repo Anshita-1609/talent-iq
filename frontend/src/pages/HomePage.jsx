@@ -8,35 +8,24 @@ import {
   VideoIcon,
   ZapIcon,
 } from "lucide-react";
-import { SignInButton } from "@clerk/clerk-react";
-import { useAuth } from "../lib/mockAuth";
+
+import { useUser } from "../lib/mockAuth.jsx";
+import { MOCK_USERS } from "../data/mockUsers";
+import { PENDING_JOIN_KEY } from "./JoinSessionPage";
+import { normalizeMockUser } from "../lib/mockUser";
 
 function HomePage() {
-  const { isSignedIn } = useAuth();
+  const { isSignedIn } = useUser();
 
-  // Check if Clerk is available
-  const isClerkEnabled = () => {
-    try {
-      require("@clerk/clerk-react");
-      return true;
-    } catch {
-      return false;
-    }
-  };
-
-  const handleGetStarted = () => {
-    if (isClerkEnabled()) {
-      // Clerk is available, SignInButton will handle it
+  const handleSignInAs = (user) => {
+    localStorage.setItem("mockUser", JSON.stringify(normalizeMockUser(user)));
+    const pendingJoin = sessionStorage.getItem(PENDING_JOIN_KEY);
+    if (pendingJoin) {
+      sessionStorage.removeItem(PENDING_JOIN_KEY);
+      window.location.href = `/session/${pendingJoin}`;
       return;
-    } else {
-      // Mock auth - simulate login
-      localStorage.setItem('mockUser', JSON.stringify({
-        id: 'user_001',
-        name: 'Demo User',
-        email: 'demo@example.com'
-      }));
-      window.location.href = '/dashboard';
     }
+    window.location.href = "/dashboard";
   };
 
   return (
@@ -61,23 +50,29 @@ function HomePage() {
             </div>
           </Link>
 
-          {/* AUTH BTN */}
-          {isClerkEnabled() ? (
-            <SignInButton mode="modal">
-              <button className="group px-6 py-3 bg-gradient-to-r from-primary to-secondary rounded-xl text-white font-semibold text-sm shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 flex items-center gap-2">
-                <span>Get Started</span>
-                <ArrowRightIcon className="size-4 group-hover:translate-x-0.5 transition-transform" />
-              </button>
-            </SignInButton>
-          ) : (
-            <button
-              onClick={handleGetStarted}
+          {/* AUTH */}
+          <div className="dropdown dropdown-end">
+            <div
+              tabIndex={0}
+              role="button"
               className="group px-6 py-3 bg-gradient-to-r from-primary to-secondary rounded-xl text-white font-semibold text-sm shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 flex items-center gap-2"
             >
               <span>Try Demo</span>
               <ArrowRightIcon className="size-4 group-hover:translate-x-0.5 transition-transform" />
-            </button>
-          )}
+            </div>
+            <ul
+              tabIndex={0}
+              className="dropdown-content z-[1] menu p-2 shadow-lg bg-base-100 rounded-box w-56 mt-2 border border-base-300"
+            >
+              {MOCK_USERS.map((user) => (
+                <li key={user.id}>
+                  <button type="button" onClick={() => handleSignInAs(user)}>
+                    {user.name}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
       </nav>
 
@@ -120,19 +115,21 @@ function HomePage() {
               </div>
             </div>
 
-            {/* CTA Buttons */}
-            <div className="flex flex-wrap gap-4">
-              <SignInButton mode="modal">
-                <button className="btn btn-primary btn-lg">
-                  Start Coding Now
-                  <ArrowRightIcon className="size-5" />
-                </button>
-              </SignInButton>
-
-              <button className="btn btn-outline btn-lg">
-                <VideoIcon className="size-5" />
-                Watch Demo
-              </button>
+            {/* CTA — pick a demo user (use different users for host vs guest) */}
+            <div className="space-y-3">
+              <p className="text-sm font-medium text-base-content/70">Sign in as:</p>
+              <div className="flex flex-wrap gap-2">
+                {MOCK_USERS.map((user) => (
+                  <button
+                    key={user.id}
+                    type="button"
+                    onClick={() => handleSignInAs(user)}
+                    className="btn btn-primary"
+                  >
+                    {user.name}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* STATS */}

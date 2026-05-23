@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect } from "react";
+import { normalizeMockUser } from "./mockUser";
 
 // Mock Auth Context to replace Clerk when not configured
 const MockAuthContext = createContext();
@@ -9,9 +10,12 @@ export const MockAuthProvider = ({ children }) => {
 
   useEffect(() => {
     // Check for mock user in localStorage
-    const mockUser = localStorage.getItem('mockUser');
+    const mockUser = localStorage.getItem("mockUser");
     if (mockUser) {
-      setUser(JSON.parse(mockUser));
+      const parsed = JSON.parse(mockUser);
+      const normalized = normalizeMockUser(parsed);
+      setUser(normalized);
+      localStorage.setItem("mockUser", JSON.stringify(normalized));
     }
     setIsLoaded(true);
   }, []);
@@ -38,13 +42,7 @@ export const MockAuthProvider = ({ children }) => {
 export const useUser = () => {
   const context = useContext(MockAuthContext);
   if (!context) {
-    // Fallback for when Clerk is available
-    try {
-      const { useUser: clerkUseUser } = require('@clerk/clerk-react');
-      return clerkUseUser();
-    } catch {
-      throw new Error('Auth context not available');
-    }
+    return { user: null, isSignedIn: false, isLoaded: true, signOut: () => {} };
   }
   return context;
 };
